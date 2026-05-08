@@ -62,6 +62,8 @@ public:
 #if HAL_QUADPLANE_ENABLED
         LOITER_ALT_QLAND = 25,
 #endif
+
+        NEWMODE       =27,
     };
 
     // Constructor
@@ -911,3 +913,47 @@ protected:
 };
 
 #endif
+
+class ModeNewmode : public Mode
+{
+    public:
+        Number mode_number() const override { return Number::NEWMODE; }
+        const char *name() const override { return "NEWMODE"; }
+        const char *name4() const override { return "NEWM"; }
+
+        bool _enter() override; 
+        void update() override; 
+        void run() override { update(); }
+        bool use_throttle_limits() const override { return false; }
+        bool use_battery_compensation() const override { return false; }
+
+    private:
+       
+        enum class TestState {
+            TAKEOFF_RUN,    // 起飞爬升
+            FOLLOW_PATH     // 无限循环航线
+        } state;
+
+        struct TargetWaypoint {
+            float x_m;
+            float y_m;
+            float alt_m;
+        };
+
+        
+        TargetWaypoint dynamic_wp_list[4]; 
+        uint8_t route_wp_count; 
+        uint8_t current_wp_idx; 
+
+        //场地坐标系核心参数 
+        Location target_center_loc; // 靶心绝对原点
+        int32_t runway_heading_cd;  // 跑道绝对航向 (X轴正方向)
+        float runway_y_pos_m;       // 跑道在靶心系下的 Y 坐标
+        bool setup_ok;              // 初始化完成标志
+
+        //内部黑盒函数 
+        Location get_loc_from_target(float x_m, float y_m, float alt_m);
+        void navigate_to_waypoint(const Location &loc);
+};
+
+
