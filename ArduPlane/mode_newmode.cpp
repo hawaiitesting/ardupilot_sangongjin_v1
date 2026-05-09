@@ -50,13 +50,13 @@ bool ModeNewmode::_enter()
     float downwind_y = runway_y_pos_m - -5.0f;
     
     // 航点0：跑道前方 100m，顺风边 Y
-    dynamic_wp_list[0] = {  100.0f, downwind_y, 20.0f };//(100,跑道中心,40)米
+    dynamic_wp_list[0] = {  200.0f, downwind_y, 50.0f };//(100,跑道中心,40)米
     // 航点1：掉头往回飞，靶心后方 200m，顺风边 Y
-    dynamic_wp_list[1] = { -100.0f, downwind_y, 20.0f };
+    dynamic_wp_list[1] = { -200.0f, downwind_y, 50.0f };
     // 航点2：向靶心靠拢，靶心后方 200m，Y 对准 0 (即靶心所在直线)
-    dynamic_wp_list[2] = { -100.0f,       0.0f, 20.0f };
+    dynamic_wp_list[2] = { -200.0f,       0.0f, 50.0f };
     // 航点3：平飞穿过靶心上空，靶心前方 200m，Y 依然是 0
-    dynamic_wp_list[3] = {  100.0f,       0.0f, 20.0f };
+    dynamic_wp_list[3] = {  200.0f,       0.0f, 50.0f };
     
     route_wp_count = 4;
     setup_ok = true;
@@ -121,7 +121,7 @@ void ModeNewmode::update()
             float dist_from_home = plane.current_loc.get_distance(plane.ahrs.get_home());
 
             // 爬升达到 30米，或者飞了100米。切入航线网
-            if (plane.relative_altitude > 10.0f|| dist_from_home > 50.0f) {//
+            if (plane.relative_altitude > 20.0f|| dist_from_home > 100.0f) {//
                 plane.prev_WP_loc = plane.current_loc; 
                 state = TestState::FOLLOW_PATH; 
                 gcs().send_text(MAV_SEVERITY_INFO, "Takeoff done, tracking rectangle.");
