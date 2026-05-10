@@ -924,36 +924,29 @@ class ModeNewmode : public Mode
         bool _enter() override; 
         void update() override; 
         void run() override { update(); }
-        bool use_throttle_limits() const override { return false; }
-        bool use_battery_compensation() const override { return false; }
+
+        // 【生命线：四个权限必须全部给满！】
+        bool use_throttle_limits() const override { return true; }
+        bool use_battery_compensation() const override { return true; }
+        bool does_auto_navigation() const override { return true; }
+        bool does_auto_throttle() const override; // 具体实现在 cpp 里
 
     private:
-       
         enum class TestState {
-            TAKEOFF_RUN,    // 起飞爬升
-            FOLLOW_PATH     // 无限循环航线
+            TAKEOFF_RUN,    
+            FOLLOW_PATH     
         } state;
 
-        struct TargetWaypoint {
-            float x_m;
-            float y_m;
-            float alt_m;
-        };
-
-        
-        TargetWaypoint dynamic_wp_list[4]; 
+        Location test_route_locs[4];
+        Location takeoff_target_loc;
         uint8_t route_wp_count; 
         uint8_t current_wp_idx; 
 
-        //场地坐标系核心参数 
-        Location target_center_loc; // 靶心绝对原点
-        int32_t runway_heading_cd;  // 跑道绝对航向 (X轴正方向)
-        float runway_y_pos_m;       // 跑道在靶心系下的 Y 坐标
-        bool setup_ok;              // 初始化完成标志
+        Location target_center_loc; 
+        int32_t runway_heading_cd;  
+        float runway_y_pos_m;       
+        bool setup_ok;              
 
-        //内部黑盒函数 
         Location get_loc_from_target(float x_m, float y_m, float alt_m);
         void navigate_to_waypoint(const Location &loc);
 };
-
-
