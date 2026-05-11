@@ -923,30 +923,10 @@ class ModeNewmode : public Mode
 
         bool _enter() override; 
         void update() override; 
-        void run() override { update(); }
+        void run() override;
 
-        // 【生命线：四个权限必须全部给满！】
-        bool use_throttle_limits() const override { return true; }
-        bool use_battery_compensation() const override { return true; }
-        bool does_auto_navigation() const override { return true; }
-        bool does_auto_throttle() const override; // 具体实现在 cpp 里
 
     private:
-        enum class TestState {
-            TAKEOFF_RUN,    
-            FOLLOW_PATH     
-        } state;
 
-        Location test_route_locs[4];
-        Location takeoff_target_loc;
-        uint8_t route_wp_count; 
-        uint8_t current_wp_idx; 
 
-        Location target_center_loc; 
-        int32_t runway_heading_cd;  
-        float runway_y_pos_m;       
-        bool setup_ok;              
-
-        Location get_loc_from_target(float x_m, float y_m, float alt_m);
-        void navigate_to_waypoint(const Location &loc);
 };
