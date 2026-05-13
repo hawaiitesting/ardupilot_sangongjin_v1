@@ -924,9 +924,17 @@ class ModeNewmode : public Mode
         bool _enter() override; 
         void update() override; 
         void run() override;
+        bool does_auto_throttle() const override { return true; }
+        bool does_auto_navigation() const override { return true; }
+        void creat_nav_waypoint();
+        void fly_black_box();
+        bool arrive_waypoint();
 
 
     private:
-
-
+        Location target_pos;
+        static const uint8_t NUM_WAYPOINTS = 4; //总航点数
+        Location num_waypoint[NUM_WAYPOINTS];   //创建了一个结构体数组用于储存经纬度和高度
+        uint8_t index;                          //索引
+        float arrived_bool_radius = 30;           //radius半径 米      
 };
