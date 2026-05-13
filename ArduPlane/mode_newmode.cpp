@@ -42,27 +42,29 @@ void ModeNewmode::creat_nav_waypoint()          // cm和*10的7次方
 
 bool ModeNewmode::arrive_waypoint()
 {
+    float dist = plane.current_loc.get_distance(target_pos);
 
-    float dist = plane.current_loc.get_distance(target_pos);//这个函数是得到当前位置与目标点的距离
+    float turn_dist = plane.nav_controller->turn_distance(arrived_bool_radius);
 
-    if (dist <= arrived_bool_radius)
+    float switch_dist = MAX(arrived_bool_radius, turn_dist);
+
+    bool passed_line = plane.current_loc.past_interval_finish_line(plane.prev_WP_loc, target_pos);
+
+
+    if ((dist <= switch_dist) || passed_line)
     {
-        
-        if(index==3){
-            index =0;
-        }
-        else
-        {
+        if (index < NUM_WAYPOINTS - 1) {
             index++;
+        } else {
+            index = 0;
         }
-        plane.prev_WP_loc = plane.current_loc;
+        
+        plane.prev_WP_loc = target_pos; 
+        
         return true;
     }
-    else
-    {
-        return false;
-    }
-
+    
+    return false;
 }
 
 void ModeNewmode::fly_black_box()
