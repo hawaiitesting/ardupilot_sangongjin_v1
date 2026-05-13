@@ -43,13 +43,13 @@ void ModeNewmode::creat_nav_waypoint()          // cm和*10的7次方
 bool ModeNewmode::arrive_waypoint()
 {
     float dist = plane.current_loc.get_distance(target_pos);
-
+    //这个会得到当前点到目标点的距离
     float turn_dist = plane.nav_controller->turn_distance(arrived_bool_radius);
-
+    //这个会得到根据气动和我们设置的半径，给我们一个提前转弯半径。这个转弯半径是提前转弯半径
     float switch_dist = MAX(arrived_bool_radius, turn_dist);
 
     bool passed_line = plane.current_loc.past_interval_finish_line(plane.prev_WP_loc, target_pos);
-
+    //这个是终点线判定。
 
     if ((dist <= switch_dist) || passed_line)
     {
