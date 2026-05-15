@@ -924,17 +924,37 @@ class ModeNewmode : public Mode
         bool _enter() override; 
         void update() override; 
         void run() override;
-        bool does_auto_throttle() const override { return true; }
+
         bool does_auto_navigation() const override { return true; }
         void creat_nav_waypoint();
         void fly_black_box();
         bool arrive_waypoint();
 
+        bool does_auto_throttle() const override { 
+                    return (state == TestState::FOLLOW_PATH); 
+                }
+
+        enum class TestState {
+            TAKEOFF_RUN,    
+            FOLLOW_PATH     
+        } state; 
 
     private:
         Location target_pos;
-        static const uint8_t NUM_WAYPOINTS = 4; //总航点数
-        Location num_waypoint[NUM_WAYPOINTS];   //创建了一个结构体数组用于储存经纬度和高度
+         
+        static const uint8_t MAX_WAYPOINTS = 20; //设置一个安全的“最大容量”（一次飞不超过20个点，就不用改这里）
+        Location num_waypoint[MAX_WAYPOINTS]; 
+
+        uint8_t total_waypoints = 0;// 实际有效航点数（这个值代码会自动算）
+
+
         uint8_t index;                          //索引
-        float arrived_bool_radius = 30;           //radius半径 米      
+        float arrived_bool_radius = 50;           //radius半径 米
+
+        Location home_los;
+
+        void add_waypoint(int32_t alt, int32_t lng, int32_t lat, bool rel_alt);
 };
+
+     
+
