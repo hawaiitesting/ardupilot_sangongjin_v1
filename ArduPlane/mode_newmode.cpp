@@ -24,10 +24,18 @@ bool ModeNewmode::_enter()
     total_waypoints = 0; // 每次切入模式，清空重置有效航点数
     //航点
 //=====================================================================
-    add_waypoint(3000, 1092084816, 346292418, 1);
-    add_waypoint(3000, 1092094848, 346293501, 1);
-    add_waypoint(3000, 1092091334, 346307405, 1);
-    add_waypoint(3000, 1092081437, 346306390, 1);
+add_waypoint(3000, 1092084897, 346294671, 1);
+add_waypoint(3000, 1092097396, 346296679, 1);
+add_waypoint(3000, 1092096913, 346312084, 1);
+add_waypoint(3000, 1092086023, 346311378, 1);
+add_waypoint(3000, 1092088491, 346295046, 1);
+add_waypoint(3000, 1092098254, 346296105, 1);
+add_waypoint(3000, 1092096430, 346310936, 1);
+add_waypoint(3000, 1092081302, 346311598, 1);
+add_waypoint(3000, 1092082965, 346299151, 1);
+
+
+
 //=====================================================================    
 
     plane.prev_WP_loc = plane.current_loc;   //把切入这个模式时的位置设为起点
@@ -53,7 +61,7 @@ bool ModeNewmode::arrive_waypoint()
     //这个会得到当前点到目标点的距离
     float turn_dist = plane.nav_controller->turn_distance(arrived_bool_radius);
     //这个会得到根据气动和我们设置的半径，给我们一个提前转弯半径。这个转弯半径是提前转弯半径
-    float switch_dist = MAX(arrived_bool_radius, turn_dist);
+    float switch_dist = MAX(arrived_bool_radius, turn_dist);//1.8f 是给个量，让他打的更狠
 
     bool passed_line = plane.current_loc.past_interval_finish_line(plane.prev_WP_loc, target_pos);
     //这个是终点线判定。

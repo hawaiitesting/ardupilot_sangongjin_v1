@@ -949,7 +949,7 @@ class ModeNewmode : public Mode
 
 
         uint8_t index;                          //索引
-        float arrived_bool_radius = 50;           //radius半径 米
+        float arrived_bool_radius = 60;           //radius半径 米
 
         Location home_los;
 
