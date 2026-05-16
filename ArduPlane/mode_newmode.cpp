@@ -26,11 +26,12 @@ bool ModeNewmode::_enter()
 add_waypoint(3000, 1092089617, 346293986, 1);
 add_waypoint(3000, 1092098951, 346296458, 1);
 add_waypoint(3000, 1092097557, 346312967, 1);
-add_waypoint(3000, 1092085809, 346311422, 1);
-add_waypoint(3000, 1092088330, 346295796, 1);
+add_waypoint(3500, 1092085809, 346311422, 1);
+add_waypoint(3500, 1092088330, 346295796, 1);
 add_waypoint(3000, 1092098361, 346303873, 1);
-add_waypoint(3000, 1092088652, 346313496, 1);
-add_waypoint(3000, 1092081732, 346310760, 1);
+add_waypoint(2500, 1092088652, 346313496, 1);
+add_waypoint(1800, 1092081302, 346310495, 1);
+
 
 
 //=====================================================================    
@@ -69,8 +70,16 @@ bool ModeNewmode::arrive_waypoint()
             index++;
             gcs().send_text(MAV_SEVERITY_INFO, "WP %d finish, next %d", index, index + 1);
         } else {
-            state = TestState::LANDING;
+            //add_waypoint(3000, 1092083851, 346295464, 1);
+            runway_end_pos.alt = 0;
+            runway_end_pos.lat = 346295464;
+            runway_end_pos.lng = 1092083851;
+            runway_end_pos.relative_alt = 1;
+
+            plane.next_WP_loc = runway_end_pos;
+
             gcs().send_text(MAV_SEVERITY_INFO, "All WPs finish, START LANDING!");
+            state = TestState::LANDING;
         }
         plane.prev_WP_loc = target_pos; 
         
@@ -128,19 +137,19 @@ void ModeNewmode::update()
         {
             creat_nav_waypoint();
             arrive_waypoint();
-            fly_black_box();
+
+            if (state == TestState::FOLLOW_PATH) 
+            {
+                fly_black_box();
+            }
+
             break;            
         }
         case TestState::LANDING :
         {
             //add_waypoint(0, 1092084146, 346293853, 1);
 
-            runway_end_pos.alt = 0;
-            runway_end_pos.lat = 346293853;
-            runway_end_pos.lng = 1092084146;
-            runway_end_pos.relative_alt = 1;
-
-            plane.next_WP_loc = runway_end_pos; 
+ 
             
             plane.nav_controller->update_waypoint(plane.prev_WP_loc, plane.next_WP_loc);//对准跑道
 
@@ -161,8 +170,11 @@ void ModeNewmode::update()
                 SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 0);//油门归零 
                 plane.nav_pitch_cd = 1000; //抬头
                 plane.calc_nav_roll();//控制横滚，防止测风吹翻 
+                if(!cut_throttle_log){
+                    gcs().send_text(MAV_SEVERITY_INFO, "FLARE! Nose UP, Throttle CUT!");
+                    cut_throttle_log = true;
+                }
                 
-                gcs().send_text(MAV_SEVERITY_INFO, "FLARE! Nose UP, Throttle CUT!");
             }
 
             

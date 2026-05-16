@@ -951,8 +951,9 @@ class ModeNewmode : public Mode
          
         static const uint8_t MAX_WAYPOINTS = 50;    //设置一个安全的“最大容量”（一次飞不超过20个点，就不用改这里）
         Location num_waypoint[MAX_WAYPOINTS];
-        
+
         void add_waypoint(int32_t alt, int32_t lng, int32_t lat, bool rel_alt);
+        bool cut_throttle_log = false;
 };
 
      
