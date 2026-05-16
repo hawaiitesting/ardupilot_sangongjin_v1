@@ -931,28 +931,27 @@ class ModeNewmode : public Mode
         bool arrive_waypoint();
 
         bool does_auto_throttle() const override { 
-                    return (state == TestState::FOLLOW_PATH); 
+                    return (state == TestState::FOLLOW_PATH || state == TestState::LANDING); 
                 }
 
         enum class TestState {
             TAKEOFF_RUN,    
-            FOLLOW_PATH     
+            FOLLOW_PATH,
+            LANDING,
+            FINISHED,     
         } state; 
 
     private:
-        Location target_pos;
-         
-        static const uint8_t MAX_WAYPOINTS = 20; //设置一个安全的“最大容量”（一次飞不超过20个点，就不用改这里）
-        Location num_waypoint[MAX_WAYPOINTS]; 
-
-        uint8_t total_waypoints = 0;// 实际有效航点数（这个值代码会自动算）
-
-
-        uint8_t index;                          //索引
-        float arrived_bool_radius = 60;           //radius半径 米
-
+        uint8_t index; 
         Location home_los;
-
+        Location target_pos;
+        Location runway_end_pos;                    // 目标点 runway_end_pos
+        uint8_t total_waypoints = 0;                // 实际有效航点数（这个值代码会自动算
+        float arrived_bool_radius = 60;             //radius半径 米
+         
+        static const uint8_t MAX_WAYPOINTS = 50;    //设置一个安全的“最大容量”（一次飞不超过20个点，就不用改这里）
+        Location num_waypoint[MAX_WAYPOINTS];
+        
         void add_waypoint(int32_t alt, int32_t lng, int32_t lat, bool rel_alt);
 };
 

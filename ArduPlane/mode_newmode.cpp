@@ -4,14 +4,13 @@
 
 void ModeNewmode::add_waypoint(int32_t alt, int32_t lng, int32_t lat, bool rel_alt)
 {
-    // 安全保护：如果没超过最大容量，就把数据塞进去
+
     if (total_waypoints < MAX_WAYPOINTS) {
         num_waypoint[total_waypoints].alt          = alt;
         num_waypoint[total_waypoints].lng          = lng;
         num_waypoint[total_waypoints].lat          = lat;
         num_waypoint[total_waypoints].relative_alt = rel_alt;
         
-        // 装完一个，总数自动加 1！
         total_waypoints++; 
     }
 }
@@ -24,16 +23,14 @@ bool ModeNewmode::_enter()
     total_waypoints = 0; // 每次切入模式，清空重置有效航点数
     //航点
 //=====================================================================
-add_waypoint(3000, 1092084897, 346294671, 1);
-add_waypoint(3000, 1092097396, 346296679, 1);
-add_waypoint(3000, 1092096913, 346312084, 1);
-add_waypoint(3000, 1092086023, 346311378, 1);
-add_waypoint(3000, 1092088491, 346295046, 1);
-add_waypoint(3000, 1092098254, 346296105, 1);
-add_waypoint(3000, 1092096430, 346310936, 1);
-add_waypoint(3000, 1092081302, 346311598, 1);
-add_waypoint(3000, 1092082965, 346299151, 1);
-
+add_waypoint(3000, 1092089617, 346293986, 1);
+add_waypoint(3000, 1092098951, 346296458, 1);
+add_waypoint(3000, 1092097557, 346312967, 1);
+add_waypoint(3000, 1092085809, 346311422, 1);
+add_waypoint(3000, 1092088330, 346295796, 1);
+add_waypoint(3000, 1092098361, 346303873, 1);
+add_waypoint(3000, 1092088652, 346313496, 1);
+add_waypoint(3000, 1092081732, 346310760, 1);
 
 
 //=====================================================================    
@@ -57,14 +54,14 @@ void ModeNewmode::creat_nav_waypoint()          // cm和*10的7次方
 
 bool ModeNewmode::arrive_waypoint()
 {
-    float dist = plane.current_loc.get_distance(target_pos);
-    //这个会得到当前点到目标点的距离
-    float turn_dist = plane.nav_controller->turn_distance(arrived_bool_radius);
-    //这个会得到根据气动和我们设置的半径，给我们一个提前转弯半径。这个转弯半径是提前转弯半径
+    float dist = plane.current_loc.get_distance(target_pos);//这个会得到当前点到目标点的距离
+    
+    float turn_dist = plane.nav_controller->turn_distance(arrived_bool_radius);//这个会得到根据气动和我们设置的半径，给我们一个提前转弯半径。这个转弯半径是提前转弯半径
+    
     float switch_dist = MAX(arrived_bool_radius, turn_dist);//1.8f 是给个量，让他打的更狠
 
-    bool passed_line = plane.current_loc.past_interval_finish_line(plane.prev_WP_loc, target_pos);
-    //这个是终点线判定。
+    bool passed_line = plane.current_loc.past_interval_finish_line(plane.prev_WP_loc, target_pos);//这个是终点线判定。
+    
 
     if ((dist <= switch_dist) || passed_line)
     {
@@ -72,10 +69,9 @@ bool ModeNewmode::arrive_waypoint()
             index++;
             gcs().send_text(MAV_SEVERITY_INFO, "WP %d finish, next %d", index, index + 1);
         } else {
-            index = 0;
-            gcs().send_text(MAV_SEVERITY_INFO, "All WPs finish, restart from WP 1");
+            state = TestState::LANDING;
+            gcs().send_text(MAV_SEVERITY_INFO, "All WPs finish, START LANDING!");
         }
-        
         plane.prev_WP_loc = target_pos; 
         
         return true;
@@ -135,9 +131,67 @@ void ModeNewmode::update()
             fly_black_box();
             break;            
         }
+        case TestState::LANDING :
+        {
+            //add_waypoint(0, 1092084146, 346293853, 1);
+
+            runway_end_pos.alt = 0;
+            runway_end_pos.lat = 346293853;
+            runway_end_pos.lng = 1092084146;
+            runway_end_pos.relative_alt = 1;
+
+            plane.next_WP_loc = runway_end_pos; 
+            
+            plane.nav_controller->update_waypoint(plane.prev_WP_loc, plane.next_WP_loc);//对准跑道
+
+            
+            
+            float height_cm = plane.current_loc.alt - home_los.alt;//拿到当前离地高度 (以起飞点为基准)
+
+            plane.target_airspeed_cm = 1000;
+            
+            if (height_cm > 500) 
+            {
+                plane.calc_nav_pitch();
+                plane.calc_nav_roll();
+                plane.calc_throttle();
+            } 
+            else 
+            {
+                SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 0);//油门归零 
+                plane.nav_pitch_cd = 1000; //抬头
+                plane.calc_nav_roll();//控制横滚，防止测风吹翻 
+                
+                gcs().send_text(MAV_SEVERITY_INFO, "FLARE! Nose UP, Throttle CUT!");
+            }
+
+            
+
+            plane.stabilize_pitch();
+            plane.stabilize_roll();
+            plane.set_servos();
+
+
+            if (height_cm < 100 && plane.ahrs.groundspeed() < 2.0f) {
+                state = TestState::FINISHED; 
+            }
+            
+            break;
+        }
+        case TestState::FINISHED :
+        {
+            SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, 0);
+            plane.nav_pitch_cd = 1500; 
+            plane.nav_roll_cd = 0;
+            
+            plane.stabilize_pitch();
+            plane.stabilize_roll();
+            plane.set_servos();
+            
+            break;
+        }
+
     }
 }
-//加一个航点到达判定。切换
-//获取目标点
 
 
